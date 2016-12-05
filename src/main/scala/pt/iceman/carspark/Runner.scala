@@ -12,7 +12,7 @@ object Runner {
       "speed_data",
       "temperature_data",
       "car_logs",
-      "car_trip"
+      "car_trips"
     ))
   }
 }
