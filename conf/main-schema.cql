@@ -1,7 +1,5 @@
-DROP KEYSPACE IF EXISTS maindata;
 CREATE KEYSPACE IF NOT EXISTS maindata WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
-USE maindata;
-
+%%
 CREATE TABLE IF NOT EXISTS maindata.car_settings (
     id BIGINT,
     constant_kilometers DOUBLE,
@@ -15,35 +13,37 @@ CREATE TABLE IF NOT EXISTS maindata.car_settings (
 
   PRIMARY KEY (id)
 );
-
+%%
 CREATE TABLE IF NOT EXISTS maindata.speed_data (
     id TIMEUUID,
+    trip_id TIMEUUID,
     speed DOUBLE,
     rpm DOUBLE,
     gear INT,
-    timeframe TIMESTAMP,
+    ts TIMESTAMP,
 
-  PRIMARY KEY (id)
-);
-
+  PRIMARY KEY (id, ts)
+) WITH CLUSTERING ORDER BY (ts DESC);
+%%
 CREATE TABLE IF NOT EXISTS maindata.temperature_data (
     id TIMEUUID,
+    trip_id TIMEUUID,
     value DOUBLE,
-    timeframe TIMESTAMP,
+    ts TIMESTAMP,
 
-  PRIMARY KEY (id)
-);
-
+  PRIMARY KEY (id, ts)
+) WITH CLUSTERING ORDER BY (ts DESC);
+%%
 CREATE TABLE IF NOT EXISTS maindata.car_logs (
     id TIMEUUID,
     message TEXT,
-    timeframe TIMESTAMP,
+    ts TIMESTAMP,
     log_level TEXT,
 
-  PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS maindata.car_trip (
+  PRIMARY KEY (id, ts)
+) WITH CLUSTERING ORDER BY (ts DESC);;
+%%
+CREATE TABLE IF NOT EXISTS maindata.car_trips (
     id TIMEUUID,
     starting_km DOUBLE,
     ending_km DOUBLE,
@@ -55,5 +55,34 @@ CREATE TABLE IF NOT EXISTS maindata.car_trip (
     trip_duration DOUBLE,
     average_speed DOUBLE,
 
-    PRIMARY KEY (id)
+    PRIMARY KEY (id, start_time)
+) WITH CLUSTERING ORDER BY (start_time DESC);
+%%
+CREATE TABLE IF NOT EXISTS maindata.processed_speed_data (
+    trip_id TIMEUUID,
+    data SET<FROZEN<TUPLE<TIMESTAMP, DOUBLE>>>,
+
+    PRIMARY KEY (trip_id)
+);
+%%
+CREATE TABLE IF NOT EXISTS maindata.processed_temperature_data (
+    trip_id TIMEUUID,
+    data SET<FROZEN<TUPLE<TIMESTAMP, DOUBLE>>>,
+
+    PRIMARY KEY (trip_id)
+);
+%%
+CREATE TABLE IF NOT EXISTS maindata.processed_rpm_data (
+    trip_id TIMEUUID,
+    data SET<FROZEN<TUPLE<TIMESTAMP, DOUBLE>>>,
+
+    PRIMARY KEY (trip_id)
+);
+%%
+CREATE TABLE IF NOT EXISTS maindata.processed_gear_data (
+    trip_id TIMEUUID,
+    data SET<FROZEN<TUPLE<TIMESTAMP, DOUBLE>>>,
+    gear_stats MAP<INT, BIGINT>,
+
+    PRIMARY KEY (trip_id)
 );

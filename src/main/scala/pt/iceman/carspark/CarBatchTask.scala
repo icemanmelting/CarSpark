@@ -1,25 +1,23 @@
 package pt.iceman.carspark
 
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.cassandra.CassandraSQLContext
+import com.datastax.driver.core.{Cluster, Session}
+import org.apache.spark.SparkConf
+import org.apache.spark.sql.SparkSession
 
 /**
   * Created by iCeMan on 02/12/2016.
   */
-class CarBatchTask {
+trait CarBatchTask {
   var conf: SparkConf = _
-  var sc: SparkContext = _
-  var csc: CassandraSQLContext = _
+  var ss: SparkSession = _
 
-  def init() = {
+  def init(hostName: String) = {
     conf = new SparkConf()
-      .set("spark.cassandra.connection.host", "192.168.0.178")
+      .set("spark.cassandra.connection.host", hostName)
       .setMaster("local[*]")
       .setAppName("CarSpark")
 
-    sc = new SparkContext(conf)
-    csc = new CassandraSQLContext(sc)
-    csc.setKeyspace("maindata")
+    ss = SparkSession.builder().config(conf).getOrCreate()
   }
 
   def run(args: Array[String]): Unit = ???
